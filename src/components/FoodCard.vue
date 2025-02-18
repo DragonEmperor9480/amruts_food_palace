@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Recipe } from '../types/recipe'
+import { useCartStore } from '@/stores/cartStore'
+
+const cart = useCartStore()
 
 const props = defineProps<{
   recipe: Recipe
@@ -16,6 +19,11 @@ const decrement = () => {
   if (quantity.value > 1) {
     quantity.value--
   }
+}
+
+const addToCart = () => {
+  cart.addToCart(props.recipe, quantity.value)
+  quantity.value = 1 // Reset quantity after adding to cart
 }
 
 // Mock price calculation based on calories (just for demo)
@@ -75,7 +83,9 @@ const calculatePrice = (calories: number) => {
       </div>
 
       <div class="card-actions justify-end mt-4">
-        <button class="btn btn-outline btn-primary hover:text-white">Add to Cart</button>
+        <button class="btn btn-outline btn-primary hover:text-white" @click="addToCart">
+          Add to Cart
+        </button>
         <button class="btn btn-primary text-white">Buy Now</button>
       </div>
     </div>
