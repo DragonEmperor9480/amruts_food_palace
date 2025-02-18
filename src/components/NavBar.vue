@@ -83,7 +83,7 @@ const selectedSort = ref(sortOptions.value[0])
             </li>
           </ul>
         </div>
-        <button class="btn btn-ghost btn-circle text-primary">
+        <label for="cart-drawer" class="btn btn-ghost btn-circle text-primary drawer-button">
           <div class="indicator">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +103,7 @@ const selectedSort = ref(sortOptions.value[0])
               {{ cart.totalItems }}
             </span>
           </div>
-        </button>
+        </label>
       </div>
     </div>
   </CartDrawer>
