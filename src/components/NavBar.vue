@@ -4,6 +4,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useRecipeStore } from '@/stores/recipeStore'
 import CartDrawer from './CartDrawer.vue'
 import SearchBar from './SearchBar.vue'
+import FilterMenu from './FilterMenu.vue'
 
 const cart = useCartStore()
 const recipeStore = useRecipeStore()
@@ -63,6 +64,7 @@ const handleSort = (sortId: string) => {
       </div>
 
       <div class="navbar-end gap-2">
+        <FilterMenu />
         <div class="dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost">
             Sort By
