@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Recipe } from '../types/recipe'
 import { useCartStore } from '@/stores/cartStore'
 
+const router = useRouter()
 const cart = useCartStore()
 
 const props = defineProps<{
@@ -30,11 +32,15 @@ const addToCart = () => {
 const calculatePrice = (calories: number) => {
   return ((calories / 100) * 2.5).toFixed(2)
 }
+
+const viewRecipe = () => {
+  router.push(`/recipe/${props.recipe.id}`)
+}
 </script>
 
 <template>
   <div class="card w-full bg-white shadow-xl hover:shadow-2xl transition-shadow duration-300">
-    <figure class="px-4 pt-4">
+    <figure class="px-4 pt-4 cursor-pointer" @click="viewRecipe">
       <img :src="recipe.image" :alt="recipe.name" class="rounded-xl h-48 w-full object-cover" />
     </figure>
     <div class="card-body">
