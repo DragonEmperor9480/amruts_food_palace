@@ -27,7 +27,11 @@ onMounted(async () => {
         {{ store.error }}
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <FoodCard v-for="recipe in store.aiRecommendations" :key="recipe.id" :recipe="recipe" />
+        <FoodCard
+          v-for="recipe in store.filteredRecipes.slice(0, 4)"
+          :key="recipe.id"
+          :recipe="recipe"
+        />
       </div>
     </section>
 
@@ -44,7 +48,7 @@ onMounted(async () => {
         {{ store.error }}
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        <FoodCard v-for="recipe in store.recipes" :key="recipe.id" :recipe="recipe" />
+        <FoodCard v-for="recipe in store.filteredRecipes" :key="recipe.id" :recipe="recipe" />
       </div>
     </section>
   </div>

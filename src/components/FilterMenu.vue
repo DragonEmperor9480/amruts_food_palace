@@ -61,7 +61,7 @@ watch(() => store.recipes, initializeFilters, { immediate: true })
 
 <template>
   <div class="dropdown dropdown-end">
-    <label tabindex="0" class="btn btn-ghost text-neutral-700 font-medium">
+    <label tabindex="0" class="btn btn-ghost m-1 text-neutral-700 font-medium">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="h-5 w-5 mr-1"
@@ -79,7 +79,10 @@ watch(() => store.recipes, initializeFilters, { immediate: true })
       Filters
     </label>
 
-    <div tabindex="0" class="dropdown-content z-[1] card card-compact w-96 p-2 shadow-xl bg-white">
+    <div
+      tabindex="0"
+      class="dropdown-content z-[1] card card-compact w-96 p-2 shadow-xl bg-white mt-2"
+    >
       <div class="card-body">
         <!-- Cuisine Filter -->
         <div class="form-control w-full">

@@ -16,14 +16,72 @@ export const useRecipeStore = defineStore('recipe', () => {
   const error = ref<string | null>(null)
 
   // Calculate price from calories
-  const calculatePrice = (calories: number) => (calories / 100) * 2.5
+  const calculatePrice = (calories: number) => Math.round((calories / 100) * 2.5)
 
-  // Computed property for AI recommendations
-  const aiRecommendations = computed(() => {
-    return [...(filteredRecipes.value.length ? filteredRecipes.value : recipes.value)]
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, 4)
-  })
+  // Sort recipes function
+  function sortRecipes(sortType: string) {
+    console.log('Sorting recipes by:', sortType) // Debug log
+
+    // Make a copy of the current recipes
+    const recipesToSort =
+      filteredRecipes.value.length > 0 ? [...filteredRecipes.value] : [...recipes.value]
+
+    switch (sortType) {
+      case 'rating-high':
+        recipesToSort.sort((a, b) => b.rating - a.rating)
+        break
+      case 'price-high':
+        recipesToSort.sort(
+          (a, b) => calculatePrice(b.caloriesPerServing) - calculatePrice(a.caloriesPerServing),
+        )
+        break
+      case 'price-low':
+        recipesToSort.sort(
+          (a, b) => calculatePrice(a.caloriesPerServing) - calculatePrice(b.caloriesPerServing),
+        )
+        break
+      default:
+        console.warn('Unknown sort type:', sortType)
+        return
+    }
+
+    // Update filteredRecipes with the sorted results
+    filteredRecipes.value = recipesToSort
+    console.log('Sorted recipes:', filteredRecipes.value) // Debug log
+  }
+
+  // Apply filters
+  function applyFilters(filters: Filters) {
+    // Start with all recipes
+    let result = [...recipes.value]
+
+    // Apply each filter if it's set
+    if (filters.cuisine) {
+      result = result.filter((recipe) => recipe.cuisine === filters.cuisine)
+    }
+
+    if (filters.mealType) {
+      result = result.filter((recipe) => recipe.mealType.includes(filters.mealType))
+    }
+
+    if (filters.difficulty) {
+      result = result.filter((recipe) => recipe.difficulty === filters.difficulty)
+    }
+
+    if (filters.maxPrice) {
+      result = result.filter(
+        (recipe) => calculatePrice(recipe.caloriesPerServing) <= filters.maxPrice,
+      )
+    }
+
+    // Update filteredRecipes with the filtered results
+    filteredRecipes.value = result
+  }
+
+  // Reset filters
+  function resetFilters() {
+    filteredRecipes.value = [...recipes.value]
+  }
 
   // Fetch all recipes
   async function fetchRecipes() {
@@ -33,29 +91,12 @@ export const useRecipeStore = defineStore('recipe', () => {
       const response = await fetch('https://dummyjson.com/recipes')
       const data = await response.json()
       recipes.value = data.recipes
-      filteredRecipes.value = data.recipes
+      filteredRecipes.value = data.recipes // Initialize filtered recipes with all recipes
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch recipes'
     } finally {
       loading.value = false
     }
-  }
-
-  // Apply filters
-  function applyFilters(filters: Filters) {
-    filteredRecipes.value = recipes.value.filter((recipe) => {
-      const priceMatch = calculatePrice(recipe.caloriesPerServing) <= filters.maxPrice
-      const cuisineMatch = !filters.cuisine || recipe.cuisine === filters.cuisine
-      const mealTypeMatch = !filters.mealType || recipe.mealType.includes(filters.mealType)
-      const difficultyMatch = !filters.difficulty || recipe.difficulty === filters.difficulty
-
-      return priceMatch && cuisineMatch && mealTypeMatch && difficultyMatch
-    })
-  }
-
-  // Reset filters
-  function resetFilters() {
-    filteredRecipes.value = recipes.value
   }
 
   // Search recipes
@@ -74,15 +115,21 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
   }
 
+  // Computed property for displaying recipes
+  const displayRecipes = computed(() => {
+    return filteredRecipes.value
+  })
+
   return {
     recipes,
-    filteredRecipes,
+    filteredRecipes: displayRecipes, // Export the computed property
     loading,
     error,
-    aiRecommendations,
     fetchRecipes,
     searchRecipes,
     applyFilters,
     resetFilters,
+    calculatePrice,
+    sortRecipes,
   }
 })
