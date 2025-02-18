@@ -4,13 +4,28 @@ import NavBar from './components/NavBar.vue'
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream-white">
+  <div class="min-h-screen bg-cream-white w-screen overflow-x-hidden">
     <NavBar />
-    <main class="container mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-8">
       <RouterView />
     </main>
   </div>
 </template>
+
+<style>
+#app {
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+</style>
 
 <style scoped>
 header {
