@@ -36,8 +36,9 @@ onMounted(async () => {
       <h2 class="text-2xl font-bold text-neutral-800 mb-6 px-4 py-2 bg-neutral-100 rounded-lg">
         All Recipes
       </h2>
-      <div v-if="store.loading" class="text-center py-8">
+      <div v-if="store.loading" class="flex justify-center items-center py-12">
         <span class="loading loading-spinner loading-lg text-primary"></span>
+        <span class="ml-4 text-lg text-neutral-600">Searching recipes...</span>
       </div>
       <div v-else-if="store.error" class="alert alert-error text-white">
         {{ store.error }}

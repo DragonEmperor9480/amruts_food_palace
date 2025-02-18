@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
+import { useRecipeStore } from '@/stores/recipeStore'
 import CartDrawer from './CartDrawer.vue'
+import SearchBar from './SearchBar.vue'
 
 const cart = useCartStore()
+const recipeStore = useRecipeStore()
+
 const sortOptions = ref([
-  { id: 1, name: 'Rating: High to Low' },
-  { id: 2, name: 'Rating: Low to High' },
-  { id: 3, name: 'Price: High to Low' },
-  { id: 4, name: 'Price: Low to High' },
+  { id: 'rating-high', name: 'Rating: High to Low' },
+  { id: 'rating-low', name: 'Rating: Low to High' },
+  { id: 'price-high', name: 'Price: High to Low' },
+  { id: 'price-low', name: 'Price: Low to High' },
 ])
 
-const selectedSort = ref(sortOptions.value[0])
+const handleSort = (sortId: string) => {
+  recipeStore.sortRecipes(sortId)
+}
 </script>
 
 <template>
@@ -47,12 +53,13 @@ const selectedSort = ref(sortOptions.value[0])
         <a class="btn btn-ghost normal-case text-xl text-primary">Amrut's Food Palace</a>
       </div>
 
-      <div class="navbar-center hidden lg:flex">
+      <div class="navbar-center hidden lg:flex gap-4">
         <ul class="menu menu-horizontal px-1">
           <li><a>Home</a></li>
           <li><a>Menu</a></li>
           <li><a>About</a></li>
         </ul>
+        <SearchBar />
       </div>
 
       <div class="navbar-end">
@@ -79,7 +86,7 @@ const selectedSort = ref(sortOptions.value[0])
             class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
           >
             <li v-for="option in sortOptions" :key="option.id">
-              <a @click="selectedSort = option">{{ option.name }}</a>
+              <a @click="handleSort(option.id)">{{ option.name }}</a>
             </li>
           </ul>
         </div>
