@@ -11,7 +11,7 @@ interface Filters {
 
 export const useRecipeStore = defineStore('recipe', {
   state: () => ({
-    recipes: ref<Recipe[]>([]),
+    recipes: [] as Recipe[],
     filteredRecipes: ref<Recipe[]>([]),
     loading: ref(false),
     error: ref<string | null>(null),
@@ -22,9 +22,62 @@ export const useRecipeStore = defineStore('recipe', {
     sortBy: 'rating-high',
   }),
 
+  getters: {
+    filteredRecipes: (state): Recipe[] => {
+      let filtered = [...state.recipes]
+
+      if (state.selectedCuisine) {
+        filtered = filtered.filter((recipe) => recipe.cuisine === state.selectedCuisine)
+      }
+
+      if (state.selectedMealType) {
+        filtered = filtered.filter((recipe) => recipe.mealType === state.selectedMealType)
+      }
+
+      if (state.selectedDifficulty) {
+        filtered = filtered.filter((recipe) => recipe.difficulty === state.selectedDifficulty)
+      }
+
+      if (state.searchTerm) {
+        const searchLower = state.searchTerm.toLowerCase()
+        filtered = filtered.filter(
+          (recipe) =>
+            recipe.name.toLowerCase().includes(searchLower) ||
+            recipe.tags.some((tag) => tag.toLowerCase().includes(searchLower)),
+        )
+      }
+
+      return filtered
+    },
+
+    aiRecommendations: (state): Recipe[] => {
+      return state.recipes.filter((recipe) => recipe.rating >= 4.5).slice(0, 5)
+    },
+  },
+
   actions: {
+    async fetchRecipes() {
+      try {
+        const response = await fetch('/data/recipes.json')
+        const data = await response.json()
+        this.recipes = data
+      } catch (error) {
+        console.error('Error fetching recipes:', error)
+      }
+    },
+
     setSearchTerm(term: string) {
       this.searchTerm = term
+    },
+
+    searchRecipes(term: string) {
+      this.searchTerm = term
+    },
+
+    applyFilters(cuisine: string, mealType: string, difficulty: string) {
+      this.selectedCuisine = cuisine
+      this.selectedMealType = mealType
+      this.selectedDifficulty = difficulty
     },
 
     resetFilters() {
@@ -33,110 +86,19 @@ export const useRecipeStore = defineStore('recipe', {
       this.selectedDifficulty = ''
       this.searchTerm = ''
       this.sortBy = 'rating-high'
-      this.filteredRecipes = [...this.recipes]
     },
 
-    // Calculate price from calories
-    calculatePrice(calories: number): number {
-      // Base price in dollars = calories/100 * 2.5
-      const priceInDollars = (calories / 100) * 2.5
-      // Convert to rupees (1 USD = 83 INR approximately)
-      const priceInRupees = priceInDollars * 83
-      return Math.round(priceInRupees)
-    },
-
-    // Sort recipes function
     sortRecipes(sortType: string) {
-      console.log('Sorting recipes by:', sortType) // Debug log
-
-      // Make a copy of the current recipes
-      const recipesToSort =
-        this.filteredRecipes.length > 0 ? [...this.filteredRecipes] : [...this.recipes]
-
-      switch (sortType) {
-        case 'rating-high':
-          recipesToSort.sort((a, b) => b.rating - a.rating)
-          break
-        case 'price-high':
-          recipesToSort.sort(
-            (a, b) =>
-              this.calculatePrice(b.caloriesPerServing) - this.calculatePrice(a.caloriesPerServing),
-          )
-          break
-        case 'price-low':
-          recipesToSort.sort(
-            (a, b) =>
-              this.calculatePrice(a.caloriesPerServing) - this.calculatePrice(b.caloriesPerServing),
-          )
-          break
-        default:
-          console.warn('Unknown sort type:', sortType)
-          return
-      }
-
-      // Update filteredRecipes with the sorted results
-      this.filteredRecipes = recipesToSort
-      console.log('Sorted recipes:', this.filteredRecipes) // Debug log
+      this.sortBy = sortType
     },
 
-    // Apply filters
-    applyFilters(filters: Filters) {
-      // Start with all recipes
-      let result = [...this.recipes]
-
-      // Apply each filter if it's set
-      if (filters.cuisine) {
-        result = result.filter((recipe) => recipe.cuisine === filters.cuisine)
-      }
-
-      if (filters.mealType) {
-        result = result.filter((recipe) => recipe.mealType.includes(filters.mealType))
-      }
-
-      if (filters.difficulty) {
-        result = result.filter((recipe) => recipe.difficulty === filters.difficulty)
-      }
-
-      if (filters.maxPrice) {
-        result = result.filter(
-          (recipe) => this.calculatePrice(recipe.caloriesPerServing) <= filters.maxPrice,
-        )
-      }
-
-      // Update filteredRecipes with the filtered results
-      this.filteredRecipes = result
+    getRecipeById(id: string): Recipe | undefined {
+      return this.recipes.find((recipe) => recipe.id.toString() === id)
     },
 
-    // Fetch all recipes
-    async fetchRecipes() {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await fetch('https://dummyjson.com/recipes')
-        const data = await response.json()
-        this.recipes = data.recipes
-        this.filteredRecipes = data.recipes // Initialize filtered recipes with all recipes
-      } catch (e) {
-        this.error = e instanceof Error ? e.message : 'Failed to fetch recipes'
-      } finally {
-        this.loading = false
-      }
-    },
-
-    // Search recipes
-    async searchRecipes(query: string) {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await fetch(`https://dummyjson.com/recipes/search?q=${query}`)
-        const data = await response.json()
-        this.recipes = data.recipes
-        this.filteredRecipes = data.recipes
-      } catch (e) {
-        this.error = e instanceof Error ? e.message : 'Failed to search recipes'
-      } finally {
-        this.loading = false
-      }
+    calculatePrice(calories: number): number {
+      const priceInDollars = (calories / 100) * 2.5
+      return Math.round(priceInDollars * 83)
     },
   },
 
