@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useRecipeStore } from '@/stores/recipeStore'
 import SearchBar from './SearchBar.vue'
@@ -96,7 +96,26 @@ watch(
 // Initial sort on component mount
 onMounted(() => {
   handleSort('rating-high')
+  document.addEventListener('keydown', handleKeydown)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+const handleOutsideClick = (event: MouseEvent) => {
+  const filterContent = document.querySelector('.filter-content')
+  if (filterContent && !filterContent.contains(event.target as Node)) {
+    isFilterOpen.value = false
+  }
+}
+
+// Close filter modal on escape key
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isFilterOpen.value) {
+    isFilterOpen.value = false
+  }
+}
 </script>
 
 <template>
@@ -195,10 +214,13 @@ onMounted(() => {
 
           <!-- Filter Button -->
           <div class="relative">
-            <button @click="toggleFilter" class="btn btn-ghost btn-sm text-neutral-700">
+            <button
+              @click="isFilterOpen = true"
+              class="btn btn-ghost text-neutral-700 hover:text-primary"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 mr-1"
+                class="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -207,144 +229,173 @@ onMounted(() => {
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                 />
               </svg>
               Filters
             </button>
 
-            <!-- Filter Modal/Dropdown -->
-            <div
-              v-if="isFilterOpen"
-              class="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl z-50 border border-neutral-200"
-            >
-              <div class="p-6 space-y-5">
-                <div class="flex justify-between items-center border-b pb-4">
-                  <h3 class="text-lg font-semibold text-neutral-800">Filters</h3>
-                  <button
-                    @click="toggleFilter"
-                    class="btn btn-ghost btn-sm btn-circle hover:bg-neutral-100"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
+            <!-- Filter Modal -->
+            <Teleport to="body">
+              <div
+                v-if="isFilterOpen"
+                class="fixed inset-0 z-50 overflow-hidden"
+                @click="handleOutsideClick"
+                aria-labelledby="filter-title"
+                role="dialog"
+                aria-modal="true"
+              >
+                <!-- Background overlay -->
+                <div class="fixed inset-0 bg-neutral-800 bg-opacity-75 transition-opacity"></div>
 
-                <!-- Cuisine Filter -->
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text text-neutral-800 font-medium text-sm"
-                      >Cuisine Type</span
+                <!-- Filter panel -->
+                <div class="fixed inset-0 overflow-y-auto">
+                  <div class="flex min-h-full items-center justify-center p-4">
+                    <div
+                      class="filter-content relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg"
+                      @click.stop
                     >
-                  </label>
-                  <select
-                    v-model="filters.cuisine"
-                    class="select select-bordered w-full bg-white text-neutral-700 hover:border-primary focus:border-primary"
-                  >
-                    <option value="" class="text-neutral-700">All Cuisines</option>
-                    <option
-                      v-for="cuisine in availableFilters.cuisines"
-                      :key="cuisine"
-                      :value="cuisine"
-                      class="text-neutral-700"
-                    >
-                      {{ cuisine }}
-                    </option>
-                  </select>
-                </div>
+                      <div class="bg-white px-6 py-6">
+                        <div class="flex justify-between items-center border-b pb-4 mb-6">
+                          <h3 class="text-lg font-semibold text-primary">Filters</h3>
+                          <button
+                            @click="isFilterOpen = false"
+                            class="btn btn-ghost btn-sm btn-circle hover:bg-neutral-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
 
-                <!-- Meal Type Filter -->
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text text-neutral-800 font-medium text-sm">Meal Type</span>
-                  </label>
-                  <select
-                    v-model="filters.mealType"
-                    class="select select-bordered w-full bg-white text-neutral-700 hover:border-primary focus:border-primary"
-                  >
-                    <option value="" class="text-neutral-700">All Meal Types</option>
-                    <option
-                      v-for="type in availableFilters.mealTypes"
-                      :key="type"
-                      :value="type"
-                      class="text-neutral-700"
-                    >
-                      {{ type }}
-                    </option>
-                  </select>
-                </div>
+                        <!-- Cuisine Filter -->
+                        <div class="form-control mb-4">
+                          <label class="label">
+                            <span class="label-text text-neutral-800 font-medium"
+                              >Cuisine Type</span
+                            >
+                          </label>
+                          <select
+                            v-model="filters.cuisine"
+                            class="select select-bordered w-full bg-white text-neutral-700 hover:border-primary focus:border-primary"
+                          >
+                            <option value="" class="text-neutral-700">All Cuisines</option>
+                            <option
+                              v-for="cuisine in availableFilters.cuisines"
+                              :key="cuisine"
+                              :value="cuisine"
+                              class="text-neutral-700"
+                            >
+                              {{ cuisine }}
+                            </option>
+                          </select>
+                        </div>
 
-                <!-- Difficulty Filter -->
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text text-neutral-800 font-medium text-sm"
-                      >Difficulty Level</span
-                    >
-                  </label>
-                  <select
-                    v-model="filters.difficulty"
-                    class="select select-bordered w-full bg-white text-neutral-700 hover:border-primary focus:border-primary"
-                  >
-                    <option value="" class="text-neutral-700">All Difficulties</option>
-                    <option
-                      v-for="level in availableFilters.difficulties"
-                      :key="level"
-                      :value="level"
-                      class="text-neutral-700"
-                    >
-                      {{ level }}
-                    </option>
-                  </select>
-                </div>
+                        <!-- Meal Type Filter -->
+                        <div class="form-control mb-4">
+                          <label class="label">
+                            <span class="label-text text-neutral-800 font-medium">Meal Type</span>
+                          </label>
+                          <select
+                            v-model="filters.mealType"
+                            class="select select-bordered w-full bg-white text-neutral-700 hover:border-primary focus:border-primary"
+                          >
+                            <option value="" class="text-neutral-700">All Meal Types</option>
+                            <option
+                              v-for="type in availableFilters.mealTypes"
+                              :key="type"
+                              :value="type"
+                              class="text-neutral-700"
+                            >
+                              {{ type }}
+                            </option>
+                          </select>
+                        </div>
 
-                <!-- Price Range Filter -->
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text text-neutral-800 font-medium text-sm">
-                      Max Price: ${{ filters.maxPrice }}
-                    </span>
-                  </label>
-                  <input
-                    type="range"
-                    v-model="filters.maxPrice"
-                    min="0"
-                    max="100"
-                    class="range range-primary"
-                    step="5"
-                  />
-                  <div class="w-full flex justify-between text-xs px-2 mt-1 text-neutral-600">
-                    <span>$0</span>
-                    <span>$50</span>
-                    <span>$100</span>
+                        <!-- Difficulty Filter -->
+                        <div class="form-control mb-4">
+                          <label class="label">
+                            <span class="label-text text-neutral-800 font-medium"
+                              >Difficulty Level</span
+                            >
+                          </label>
+                          <select
+                            v-model="filters.difficulty"
+                            class="select select-bordered w-full bg-white text-neutral-700 hover:border-primary focus:border-primary"
+                          >
+                            <option value="" class="text-neutral-700">All Difficulties</option>
+                            <option
+                              v-for="level in availableFilters.difficulties"
+                              :key="level"
+                              :value="level"
+                              class="text-neutral-700"
+                            >
+                              {{ level }}
+                            </option>
+                          </select>
+                        </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="form-control mb-6">
+                          <label class="label">
+                            <span class="label-text text-neutral-800 font-medium">
+                              Max Price: ₹{{ filters.maxPrice * 83 }}
+                            </span>
+                          </label>
+                          <input
+                            type="range"
+                            v-model="filters.maxPrice"
+                            min="0"
+                            max="100"
+                            class="range range-primary"
+                            step="5"
+                          />
+                          <div
+                            class="w-full flex justify-between text-xs px-2 mt-1 text-neutral-600"
+                          >
+                            <span>₹0</span>
+                            <span>₹4,150</span>
+                            <span>₹8,300</span>
+                          </div>
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="flex justify-end gap-2 pt-4 border-t">
+                          <button
+                            @click="resetFilters"
+                            class="btn btn-ghost text-neutral-700 hover:bg-neutral-100"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            @click="
+                              () => {
+                                applyFilters()
+                                isFilterOpen = false
+                              }
+                            "
+                            class="btn bg-primary hover:bg-primary/90 text-white border-0"
+                          >
+                            Apply Filters
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <!-- Filter Actions -->
-                <div class="flex justify-end gap-2 pt-4 border-t">
-                  <button
-                    @click="resetFilters"
-                    class="btn btn-ghost btn-sm text-neutral-700 hover:bg-neutral-100"
-                  >
-                    Reset
-                  </button>
-                  <button @click="applyFilters" class="btn btn-primary btn-sm text-white">
-                    Apply Filters
-                  </button>
-                </div>
               </div>
-            </div>
+            </Teleport>
           </div>
 
           <!-- Cart Button -->
@@ -522,5 +573,13 @@ onMounted(() => {
 
 .range-primary::-moz-range-thumb {
   background: var(--primary);
+}
+
+.filter-content {
+  pointer-events: auto;
+}
+
+.select option {
+  padding: 8px;
 }
 </style>

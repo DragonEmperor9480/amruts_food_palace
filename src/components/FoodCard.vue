@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Recipe } from '../types/recipe'
 import { useCartStore } from '@/stores/cartStore'
@@ -12,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const quantity = ref(1)
+const showBuyModal = ref(false)
 
 const increment = () => {
   quantity.value++
@@ -25,8 +26,44 @@ const decrement = () => {
 
 const addToCart = () => {
   cart.addToCart(props.recipe, quantity.value)
-  quantity.value = 1 // Reset quantity after adding to cart
 }
+
+const buyNow = () => {
+  quantity.value = 1 // Reset quantity when opening modal
+  showBuyModal.value = true
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden'
+}
+
+const confirmPurchase = () => {
+  cart.clearCart() // Clear existing cart
+  cart.addToCart(props.recipe, quantity.value) // Add only this item
+  router.push('/cart') // Navigate to cart
+  closeModal()
+}
+
+const closeModal = () => {
+  showBuyModal.value = false
+  quantity.value = 1 // Reset quantity when closing
+  // Restore body scroll when modal is closed
+  document.body.style.overflow = 'auto'
+}
+
+// Handle escape key to close modal
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && showBuyModal.value) {
+    closeModal()
+  }
+}
+
+// Add and remove event listener
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 
 // Calculate price in rupees
 const calculatePriceInRupees = (calories: number) => {
@@ -36,6 +73,14 @@ const calculatePriceInRupees = (calories: number) => {
 
 const viewRecipe = () => {
   router.push(`/recipe/${props.recipe.id}`)
+}
+
+const handleOutsideClick = (event: MouseEvent) => {
+  const modalContent = document.querySelector('.modal-content')
+  // Close if click is outside modal content
+  if (modalContent && !modalContent.contains(event.target as Node)) {
+    closeModal()
+  }
 }
 </script>
 
@@ -89,13 +134,131 @@ const viewRecipe = () => {
         </div>
       </div>
 
-      <div class="card-actions justify-end mt-4">
-        <button class="btn btn-outline btn-primary hover:text-white" @click="addToCart">
+      <div class="card-actions justify-end items-center mt-4">
+        <button @click="addToCart" class="btn btn-ghost text-primary hover:bg-primary/10">
           Add to Cart
         </button>
-        <button class="btn btn-primary text-white">Buy Now</button>
+        <button @click="buyNow" class="btn bg-primary hover:bg-primary/90 text-white border-0">
+          Buy Now
+        </button>
       </div>
     </div>
+
+    <!-- Teleport the modal to body to prevent layout issues -->
+    <Teleport to="body">
+      <!-- Buy Now Modal -->
+      <div
+        v-if="showBuyModal"
+        class="fixed inset-0 z-50 overflow-hidden"
+        @click="handleOutsideClick"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true"
+      >
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-neutral-800 bg-opacity-75 transition-opacity"></div>
+
+        <!-- Modal panel -->
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <!-- Added modal-content class here -->
+            <div
+              class="modal-content relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg"
+              @click.stop
+            >
+              <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <h3 class="text-lg font-semibold leading-6 text-primary mb-4">Confirm Purchase</h3>
+
+                <!-- Item Details -->
+                <div class="flex gap-4 mb-6">
+                  <img
+                    :src="recipe.image"
+                    :alt="recipe.name"
+                    class="w-24 h-24 object-cover rounded-lg"
+                  />
+                  <div>
+                    <h4 class="font-semibold text-neutral-800">{{ recipe.name }}</h4>
+                    <div class="text-neutral-600 text-sm">{{ recipe.cuisine }}</div>
+                    <div class="text-primary font-bold mt-1">
+                      ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) }}
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <button
+                        class="btn btn-xs btn-circle bg-primary hover:bg-primary/90 text-white border-0"
+                        @click="quantity > 1 ? quantity-- : null"
+                      >
+                        -
+                      </button>
+                      <span class="text-neutral-700">{{ quantity }}</span>
+                      <button
+                        class="btn btn-xs btn-circle bg-primary hover:bg-primary/90 text-white border-0"
+                        @click="quantity++"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Price Summary -->
+                <div class="bg-neutral-50 p-4 rounded-lg mb-6">
+                  <div class="flex justify-between mb-2">
+                    <span class="text-neutral-600">Price</span>
+                    <span class="text-neutral-800">
+                      ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) * quantity }}
+                    </span>
+                  </div>
+                  <div class="flex justify-between mb-2">
+                    <span class="text-neutral-600">Delivery</span>
+                    <span class="text-neutral-800">₹60</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-neutral-600">GST (18%)</span>
+                    <span class="text-neutral-800">
+                      ₹{{
+                        Math.round(
+                          calculatePriceInRupees(recipe.caloriesPerServing) * quantity * 0.18,
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div class="border-t border-neutral-200 mt-2 pt-2">
+                    <div class="flex justify-between">
+                      <span class="font-bold text-neutral-800">Total</span>
+                      <span class="font-bold text-primary">
+                        ₹{{
+                          calculatePriceInRupees(recipe.caloriesPerServing) * quantity +
+                          60 +
+                          Math.round(
+                            calculatePriceInRupees(recipe.caloriesPerServing) * quantity * 0.18,
+                          )
+                        }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex justify-end gap-2 mt-4">
+                  <button
+                    class="btn btn-ghost text-neutral-600 hover:bg-neutral-100"
+                    @click="closeModal"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="btn bg-primary hover:bg-primary/90 text-white border-0"
+                    @click="confirmPurchase"
+                  >
+                    Proceed to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -124,5 +287,9 @@ const viewRecipe = () => {
 
 .btn-primary {
   @apply font-semibold;
+}
+
+.modal-content {
+  pointer-events: auto;
 }
 </style>
