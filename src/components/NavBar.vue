@@ -22,7 +22,7 @@ const handleSort = (sortId: string) => {
 
 <template>
   <CartDrawer>
-    <div class="navbar bg-base-100 shadow-lg w-screen">
+    <div class="navbar bg-base-100 shadow-lg w-screen px-4">
       <div class="navbar-start">
         <div class="dropdown">
           <label tabindex="0" class="btn btn-ghost lg:hidden">
@@ -53,18 +53,18 @@ const handleSort = (sortId: string) => {
         <a class="btn btn-ghost normal-case text-xl text-primary">Amrut's Food Palace</a>
       </div>
 
-      <div class="navbar-center hidden lg:flex gap-4">
-        <ul class="menu menu-horizontal px-1">
+      <div class="navbar-center flex-none lg:flex items-center gap-2">
+        <ul class="menu menu-horizontal px-1 hidden lg:flex">
           <li><a>Home</a></li>
           <li><a>Menu</a></li>
           <li><a>About</a></li>
         </ul>
-        <SearchBar />
+        <SearchBar class="max-w-sm" />
       </div>
 
-      <div class="navbar-end">
+      <div class="navbar-end gap-2">
         <div class="dropdown dropdown-end">
-          <label tabindex="0" class="btn m-1">
+          <label tabindex="0" class="btn btn-ghost">
             Sort By
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -90,6 +90,7 @@ const handleSort = (sortId: string) => {
             </li>
           </ul>
         </div>
+
         <label for="cart-drawer" class="btn btn-ghost btn-circle text-primary drawer-button">
           <div class="indicator">
             <svg
@@ -118,20 +119,17 @@ const handleSort = (sortId: string) => {
 
 <style scoped>
 .navbar {
-  @apply sticky top-0 z-50;
+  @apply sticky top-0 z-40 h-16;
   margin: 0;
-  padding: 0 2rem;
   left: 0;
   right: 0;
 }
 
-/* Remove any max-width constraints from parent elements */
-:deep(#app),
-:deep(body) {
-  max-width: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  width: 100vw !important;
-  overflow-x: hidden !important;
+.menu-horizontal {
+  @apply mx-4;
+}
+
+.menu-horizontal > li > a {
+  @apply px-4;
 }
 </style>

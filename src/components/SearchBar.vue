@@ -15,16 +15,16 @@ const handleSearch = () => {
 </script>
 
 <template>
-  <div class="form-control">
-    <div class="input-group">
+  <div class="form-control flex-1 max-w-md">
+    <div class="join w-full">
       <input
         type="text"
         v-model="searchQuery"
         @keyup.enter="handleSearch"
-        placeholder="Search recipes..."
-        class="input input-bordered w-full max-w-xs focus:outline-none focus:border-primary"
+        placeholder="Search for recipes..."
+        class="input input-bordered join-item flex-1 w-full focus:outline-none focus:border-primary"
       />
-      <button class="btn btn-primary text-white" @click="handleSearch">
+      <button class="btn btn-primary join-item text-white" @click="handleSearch">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-5 w-5"
@@ -45,15 +45,16 @@ const handleSearch = () => {
 </template>
 
 <style scoped>
-.input-group {
-  @apply bg-white rounded-lg overflow-hidden;
-}
-
 .input {
-  @apply text-neutral-800;
+  @apply text-neutral-800 bg-white;
+  min-width: 250px;
 }
 
 .input::placeholder {
   @apply text-neutral-400;
+}
+
+.join {
+  @apply bg-white rounded-lg overflow-hidden shadow-sm;
 }
 </style>
