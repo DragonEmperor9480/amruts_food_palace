@@ -1,9 +1,28 @@
 <script setup lang="ts">
 import { useCartStore } from '@/stores/cartStore'
 import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 
 const cart = useCartStore()
 const router = useRouter()
+
+// Constants for price calculations
+const USD_TO_INR = 83
+const DELIVERY_FEE_INR = 60 // Fixed delivery fee of ₹60
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(price)
+}
+
+// Computed properties for price calculations
+const subtotalInRupees = computed(() => Number(cart.totalPrice) * USD_TO_INR)
+const taxAmount = computed(() => subtotalInRupees.value * 0.18) // 18% GST on food price only
+const totalAmount = computed(() => subtotalInRupees.value + DELIVERY_FEE_INR + taxAmount.value)
 
 const updateQuantity = (recipeId: number, newQuantity: number) => {
   cart.updateQuantity(recipeId, newQuantity)
@@ -78,7 +97,7 @@ const checkout = () => {
                 <span>{{ item.recipe.difficulty }}</span>
               </div>
               <div class="text-primary font-bold mt-1">
-                ${{ ((item.recipe.caloriesPerServing / 100) * 2.5).toFixed(2) }}
+                {{ formatPrice((item.recipe.caloriesPerServing / 100) * 2.5 * 83) }}
               </div>
             </div>
 
@@ -133,24 +152,20 @@ const checkout = () => {
           <div class="space-y-3 mb-6">
             <div class="flex justify-between text-neutral-600">
               <span>Subtotal</span>
-              <span>${{ cart.totalPrice }}</span>
+              <span>{{ formatPrice(subtotalInRupees) }}</span>
             </div>
             <div class="flex justify-between text-neutral-600">
               <span>Delivery Fee</span>
-              <span>$5.00</span>
+              <span>{{ formatPrice(DELIVERY_FEE_INR) }}</span>
             </div>
             <div class="flex justify-between text-neutral-600">
-              <span>Tax</span>
-              <span>${{ (Number(cart.totalPrice) * 0.1).toFixed(2) }}</span>
+              <span>GST (18%)</span>
+              <span>{{ formatPrice(taxAmount) }}</span>
             </div>
             <div class="border-t pt-3 mt-3">
               <div class="flex justify-between font-bold text-lg text-neutral-800">
                 <span>Total</span>
-                <span
-                  >${{
-                    (Number(cart.totalPrice) + 5 + Number(cart.totalPrice) * 0.1).toFixed(2)
-                  }}</span
-                >
+                <span>{{ formatPrice(totalAmount) }}</span>
               </div>
             </div>
           </div>

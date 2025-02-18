@@ -16,7 +16,13 @@ export const useRecipeStore = defineStore('recipe', () => {
   const error = ref<string | null>(null)
 
   // Calculate price from calories
-  const calculatePrice = (calories: number) => Math.round((calories / 100) * 2.5)
+  function calculatePrice(calories: number): number {
+    // Base price in dollars = calories/100 * 2.5
+    const priceInDollars = (calories / 100) * 2.5
+    // Convert to rupees (1 USD = 83 INR approximately)
+    const priceInRupees = priceInDollars * 83
+    return Math.round(priceInRupees)
+  }
 
   // Sort recipes function
   function sortRecipes(sortType: string) {

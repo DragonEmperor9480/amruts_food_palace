@@ -28,9 +28,10 @@ const addToCart = () => {
   quantity.value = 1 // Reset quantity after adding to cart
 }
 
-// Mock price calculation based on calories (just for demo)
-const calculatePrice = (calories: number) => {
-  return ((calories / 100) * 2.5).toFixed(2)
+// Calculate price in rupees
+const calculatePriceInRupees = (calories: number) => {
+  const priceInDollars = (calories / 100) * 2.5
+  return Math.round(priceInDollars * 83) // 1 USD = 83 INR
 }
 
 const viewRecipe = () => {
@@ -68,7 +69,7 @@ const viewRecipe = () => {
 
       <div class="flex justify-between items-center mt-2">
         <div class="text-xl font-bold text-primary">
-          ${{ calculatePrice(recipe.caloriesPerServing) }}
+          ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) }}
         </div>
 
         <div class="flex items-center gap-2">
