@@ -61,10 +61,10 @@ watch(() => store.recipes, initializeFilters, { immediate: true })
 
 <template>
   <div class="dropdown dropdown-end">
-    <label tabindex="0" class="btn btn-ghost m-1">
+    <label tabindex="0" class="btn btn-ghost text-neutral-700 font-medium">
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5"
+        class="h-5 w-5 mr-1"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -79,10 +79,7 @@ watch(() => store.recipes, initializeFilters, { immediate: true })
       Filters
     </label>
 
-    <div
-      tabindex="0"
-      class="dropdown-content z-[1] card card-compact w-96 p-2 shadow-xl bg-base-100"
-    >
+    <div tabindex="0" class="dropdown-content z-[1] card card-compact w-96 p-2 shadow-xl bg-white">
       <div class="card-body">
         <!-- Cuisine Filter -->
         <div class="form-control w-full">
@@ -151,10 +148,8 @@ watch(() => store.recipes, initializeFilters, { immediate: true })
 
         <!-- Filter Actions -->
         <div class="card-actions justify-end mt-4">
-          <button class="btn btn-ghost" @click="resetFilters">Reset</button>
-          <button class="btn btn-primary text-white" @click="store.applyFilters(selectedFilters)">
-            Apply Filters
-          </button>
+          <button class="btn btn-ghost text-neutral-600 hover:bg-neutral-100">Reset</button>
+          <button class="btn btn-primary text-white hover:bg-primary/90">Apply Filters</button>
         </div>
       </div>
     </div>
@@ -168,10 +163,23 @@ watch(() => store.recipes, initializeFilters, { immediate: true })
 
 .select,
 .range {
-  @apply bg-white;
+  @apply bg-white border-neutral-300;
+}
+
+.select:focus,
+.range:focus {
+  @apply border-primary;
 }
 
 .label-text {
   @apply text-neutral-700;
+}
+
+.range-primary {
+  @apply bg-neutral-200;
+}
+
+.range-primary::-webkit-slider-thumb {
+  @apply bg-primary;
 }
 </style>

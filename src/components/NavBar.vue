@@ -7,29 +7,39 @@ import SearchBar from './SearchBar.vue'
 import FilterMenu from './FilterMenu.vue'
 
 const cart = useCartStore()
-const recipeStore = useRecipeStore()
-
-const sortOptions = ref([
-  { id: 'rating-high', name: 'Rating: High to Low' },
-  { id: 'rating-low', name: 'Rating: Low to High' },
-  { id: 'price-high', name: 'Price: High to Low' },
-  { id: 'price-low', name: 'Price: Low to High' },
-])
+const store = useRecipeStore()
+const activeSort = ref('rating-high')
 
 const handleSort = (sortId: string) => {
-  recipeStore.sortRecipes(sortId)
+  activeSort.value = sortId
+  store.sortRecipes(sortId)
 }
 </script>
 
 <template>
   <CartDrawer>
-    <div class="navbar bg-base-100 shadow-lg w-screen px-4">
+    <div class="navbar bg-white shadow-lg w-screen px-4">
+      <!-- Logo -->
       <div class="navbar-start">
-        <div class="dropdown">
-          <label tabindex="0" class="btn btn-ghost lg:hidden">
+        <a class="btn btn-ghost normal-case text-xl text-primary font-bold">
+          Amrut's Food Palace
+        </a>
+      </div>
+
+      <!-- Center Section -->
+      <div class="navbar-center flex-1 lg:flex items-center justify-center gap-4">
+        <!-- Sort Buttons -->
+        <div class="hidden lg:flex items-center gap-2">
+          <button
+            class="btn btn-sm"
+            :class="
+              activeSort === 'rating-high' ? 'btn-primary text-white' : 'btn-ghost text-neutral-600'
+            "
+            @click="handleSort('rating-high')"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
+              class="h-4 w-4 mr-1"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -38,61 +48,87 @@ const handleSort = (sortId: string) => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M4 6h16M4 12h8m-8 6h16"
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
               />
             </svg>
-          </label>
-          <ul
-            tabindex="0"
-            class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+            Top Rated
+          </button>
+          <button
+            class="btn btn-sm"
+            :class="
+              activeSort === 'price-high' ? 'btn-primary text-white' : 'btn-ghost text-neutral-600'
+            "
+            @click="handleSort('price-high')"
           >
-            <li><a>Home</a></li>
-            <li><a>Menu</a></li>
-            <li><a>About</a></li>
-          </ul>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7l4-4m0 0l4 4m-4-4v18"
+              />
+            </svg>
+            Price: High to Low
+          </button>
+          <button
+            class="btn btn-sm"
+            :class="
+              activeSort === 'price-low' ? 'btn-primary text-white' : 'btn-ghost text-neutral-600'
+            "
+            @click="handleSort('price-low')"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 17l-4 4m0 0l-4-4m4 4V3"
+              />
+            </svg>
+            Price: Low to High
+          </button>
         </div>
-        <a class="btn btn-ghost normal-case text-xl text-primary">Amrut's Food Palace</a>
+
+        <!-- Search Bar -->
+        <SearchBar class="max-w-sm hidden lg:flex" />
       </div>
 
-      <div class="navbar-center flex-none lg:flex items-center gap-2">
-        <ul class="menu menu-horizontal px-1 hidden lg:flex">
-          <li><a>Home</a></li>
-          <li><a>Menu</a></li>
-          <li><a>About</a></li>
-        </ul>
-        <SearchBar class="max-w-sm" />
-      </div>
-
+      <!-- Right Section -->
       <div class="navbar-end gap-2">
+        <!-- Filter Menu -->
         <FilterMenu />
-        <div class="dropdown dropdown-end">
-          <label tabindex="0" class="btn btn-ghost">
-            Sort By
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 ml-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </label>
-          <ul
-            tabindex="0"
-            class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
-          >
-            <li v-for="option in sortOptions" :key="option.id">
-              <a @click="handleSort(option.id)">{{ option.name }}</a>
-            </li>
-          </ul>
-        </div>
 
+        <!-- Mobile Search Toggle -->
+        <button class="btn btn-ghost btn-circle lg:hidden">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </button>
+
+        <!-- Cart Button -->
         <label for="cart-drawer" class="btn btn-ghost btn-circle text-primary drawer-button">
           <div class="indicator">
             <svg
@@ -116,6 +152,11 @@ const handleSort = (sortId: string) => {
         </label>
       </div>
     </div>
+
+    <!-- Mobile Search (Shown below navbar on mobile) -->
+    <div class="lg:hidden w-full bg-white px-4 py-2 shadow-md">
+      <SearchBar />
+    </div>
   </CartDrawer>
 </template>
 
@@ -127,11 +168,7 @@ const handleSort = (sortId: string) => {
   right: 0;
 }
 
-.menu-horizontal {
-  @apply mx-4;
-}
-
-.menu-horizontal > li > a {
-  @apply px-4;
+.btn-sm {
+  @apply h-9 min-h-0;
 }
 </style>
