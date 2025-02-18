@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import FoodCard from '@/components/FoodCard.vue'
 import { useRecipeStore } from '@/stores/recipeStore'
 
 const store = useRecipeStore()
+
+// Compute AI recommendations (top 4 rated recipes)
+const aiRecommendations = computed(() => {
+  return [...store.recipes].sort((a, b) => b.rating - a.rating).slice(0, 4)
+})
 
 onMounted(async () => {
   await store.fetchRecipes()
@@ -27,11 +32,7 @@ onMounted(async () => {
         {{ store.error }}
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <FoodCard
-          v-for="recipe in store.filteredRecipes.slice(0, 4)"
-          :key="recipe.id"
-          :recipe="recipe"
-        />
+        <FoodCard v-for="recipe in aiRecommendations" :key="recipe.id" :recipe="recipe" />
       </div>
     </section>
 
