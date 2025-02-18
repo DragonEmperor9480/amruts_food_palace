@@ -25,7 +25,7 @@ const calculatePrice = (calories: number) => {
 </script>
 
 <template>
-  <div class="card w-96 bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+  <div class="card w-full bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
     <figure class="px-4 pt-4">
       <img :src="recipe.image" :alt="recipe.name" class="rounded-xl h-48 w-full object-cover" />
     </figure>
@@ -75,9 +75,14 @@ const calculatePrice = (calories: number) => {
 <style scoped>
 .card {
   @apply transition-all duration-300 ease-in-out;
+  min-width: 300px;
 }
 
 .card:hover {
   @apply transform -translate-y-1;
+}
+
+.card-body {
+  @apply p-4;
 }
 </style>
