@@ -116,6 +116,29 @@ const handleKeydown = (e: KeyboardEvent) => {
     isFilterOpen.value = false
   }
 }
+
+const resetAllFilters = () => {
+  // Reset all filters in the store
+  store.resetFilters()
+  // Reset search if it exists
+  if (store.setSearchTerm) {
+    store.setSearchTerm('')
+  }
+}
+
+const resetAndGoHome = async () => {
+  // Reset all filters
+  store.resetFilters()
+
+  // Navigate to home page
+  if (router.currentRoute.value.path !== '/') {
+    await router.push('/')
+  }
+
+  // Force a re-render of the home page without full refresh
+  store.$reset()
+  await router.replace({ path: '/', force: true })
+}
 </script>
 
 <template>
@@ -125,7 +148,13 @@ const handleKeydown = (e: KeyboardEvent) => {
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <div class="flex-shrink-0">
-          <span class="text-xl font-bold text-primary">Amrut's Food Palace</span>
+          <a
+            class="btn btn-ghost text-xl text-primary hover:bg-primary/5"
+            @click="resetAndGoHome"
+            style="cursor: pointer"
+          >
+            Amrut's Food Palace
+          </a>
         </div>
 
         <!-- Desktop Search Bar -->

@@ -86,6 +86,7 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   // Reset filters
   function resetFilters() {
+    // Reset all filter-related state
     filteredRecipes.value = [...recipes.value]
   }
 

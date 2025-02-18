@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Recipe } from '../types/recipe'
 import { useCartStore } from '@/stores/cartStore'
@@ -13,6 +13,7 @@ const props = defineProps<{
 
 const quantity = ref(1)
 const showBuyModal = ref(false)
+const modalQuantity = ref(1) // Separate quantity for modal
 
 const increment = () => {
   quantity.value++
@@ -29,7 +30,7 @@ const addToCart = () => {
 }
 
 const buyNow = () => {
-  quantity.value = 1 // Reset quantity when opening modal
+  modalQuantity.value = quantity.value // Sync modal quantity with card quantity
   showBuyModal.value = true
   // Prevent body scroll when modal is open
   document.body.style.overflow = 'hidden'
@@ -37,14 +38,14 @@ const buyNow = () => {
 
 const confirmPurchase = () => {
   cart.clearCart() // Clear existing cart
-  cart.addToCart(props.recipe, quantity.value) // Add only this item
+  cart.addToCart(props.recipe, modalQuantity.value) // Use modal quantity
   router.push('/cart') // Navigate to cart
   closeModal()
 }
 
 const closeModal = () => {
   showBuyModal.value = false
-  quantity.value = 1 // Reset quantity when closing
+  modalQuantity.value = quantity.value // Reset modal quantity to card quantity
   // Restore body scroll when modal is closed
   document.body.style.overflow = 'auto'
 }
@@ -82,6 +83,13 @@ const handleOutsideClick = (event: MouseEvent) => {
     closeModal()
   }
 }
+
+// Watch for quantity changes to sync between card and modal
+watch(quantity, (newValue) => {
+  if (!showBuyModal.value) {
+    modalQuantity.value = newValue
+  }
+})
 </script>
 
 <template>
@@ -185,14 +193,14 @@ const handleOutsideClick = (event: MouseEvent) => {
                     <div class="flex items-center gap-2 mt-2">
                       <button
                         class="btn btn-xs btn-circle bg-primary hover:bg-primary/90 text-white border-0"
-                        @click="quantity > 1 ? quantity-- : null"
+                        @click="modalQuantity > 1 ? modalQuantity-- : null"
                       >
                         -
                       </button>
-                      <span class="text-neutral-700">{{ quantity }}</span>
+                      <span class="text-neutral-700">{{ modalQuantity }}</span>
                       <button
                         class="btn btn-xs btn-circle bg-primary hover:bg-primary/90 text-white border-0"
-                        @click="quantity++"
+                        @click="modalQuantity++"
                       >
                         +
                       </button>
@@ -205,7 +213,7 @@ const handleOutsideClick = (event: MouseEvent) => {
                   <div class="flex justify-between mb-2">
                     <span class="text-neutral-600">Price</span>
                     <span class="text-neutral-800">
-                      ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) * quantity }}
+                      ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) * modalQuantity }}
                     </span>
                   </div>
                   <div class="flex justify-between mb-2">
@@ -217,7 +225,7 @@ const handleOutsideClick = (event: MouseEvent) => {
                     <span class="text-neutral-800">
                       ₹{{
                         Math.round(
-                          calculatePriceInRupees(recipe.caloriesPerServing) * quantity * 0.18,
+                          calculatePriceInRupees(recipe.caloriesPerServing) * modalQuantity * 0.18,
                         )
                       }}
                     </span>
@@ -227,10 +235,12 @@ const handleOutsideClick = (event: MouseEvent) => {
                       <span class="font-bold text-neutral-800">Total</span>
                       <span class="font-bold text-primary">
                         ₹{{
-                          calculatePriceInRupees(recipe.caloriesPerServing) * quantity +
+                          calculatePriceInRupees(recipe.caloriesPerServing) * modalQuantity +
                           60 +
                           Math.round(
-                            calculatePriceInRupees(recipe.caloriesPerServing) * quantity * 0.18,
+                            calculatePriceInRupees(recipe.caloriesPerServing) *
+                              modalQuantity *
+                              0.18,
                           )
                         }}
                       </span>

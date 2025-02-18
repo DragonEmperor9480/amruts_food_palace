@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useRecipeStore } from '@/stores/recipeStore'
 import { useCartStore } from '@/stores/cartStore'
 
 const route = useRoute()
 const router = useRouter()
+const store = useRecipeStore()
 const cart = useCartStore()
 
 const recipe = ref<any>(null)
 const loading = ref(true)
 const quantity = ref(1)
 const activeTab = ref('ingredients')
+const showBuyModal = ref(false)
 
 const fetchRecipe = async () => {
   try {
@@ -29,6 +32,21 @@ const addToCart = () => {
   }
 }
 
+const buyNow = () => {
+  showBuyModal.value = true
+}
+
+const confirmPurchase = () => {
+  cart.clearCart() // Clear existing cart
+  cart.addToCart(recipe.value, quantity.value) // Add only this item
+  router.push('/cart')
+  closeModal()
+}
+
+const closeModal = () => {
+  showBuyModal.value = false
+}
+
 const increment = () => quantity.value++
 const decrement = () => {
   if (quantity.value > 1) quantity.value--
@@ -36,6 +54,11 @@ const decrement = () => {
 
 const calculatePrice = (calories: number) => {
   return ((calories / 100) * 2.5).toFixed(2)
+}
+
+const calculatePriceInRupees = (calories: number) => {
+  const priceInDollars = (calories / 100) * 2.5
+  return Math.round(priceInDollars * 83)
 }
 
 onMounted(fetchRecipe)
@@ -156,34 +179,111 @@ onMounted(fetchRecipe)
           </ol>
         </div>
 
-        <!-- Add to Cart Section -->
-        <div class="card bg-neutral-100 p-6 mt-8 rounded-xl">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
+        <!-- Add quantity controls and Buy Now button -->
+        <div class="flex items-center gap-4 mt-6">
+          <div class="flex items-center gap-2">
+            <button
+              class="btn btn-circle bg-primary hover:bg-primary/90 text-white border-0"
+              @click="quantity > 1 ? quantity-- : null"
+            >
+              -
+            </button>
+            <span class="text-neutral-700 text-lg">{{ quantity }}</span>
+            <button
+              class="btn btn-circle bg-primary hover:bg-primary/90 text-white border-0"
+              @click="quantity++"
+            >
+              +
+            </button>
+          </div>
+
+          <button @click="addToCart" class="btn btn-outline btn-primary">Add to Cart</button>
+
+          <button @click="buyNow" class="btn bg-primary hover:bg-primary/90 text-white border-0">
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buy Now Modal -->
+    <dialog :open="showBuyModal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box bg-white">
+        <div class="flex items-start gap-4">
+          <img :src="recipe.image" :alt="recipe.name" class="w-24 h-24 object-cover rounded-lg" />
+          <div>
+            <h4 class="font-semibold text-neutral-800">{{ recipe.name }}</h4>
+            <div class="text-neutral-600 text-sm">{{ recipe.cuisine }}</div>
+            <div class="text-primary font-bold mt-1">
+              ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) }}
+            </div>
+            <div class="flex items-center gap-2 mt-2">
               <button
-                class="btn btn-circle btn-sm bg-primary text-white hover:bg-primary/90"
-                @click="decrement"
+                class="btn btn-xs btn-circle bg-primary hover:bg-primary/90 text-white border-0"
+                @click="quantity > 1 ? quantity-- : null"
               >
                 -
               </button>
-              <span class="text-xl font-semibold text-neutral-800">{{ quantity }}</span>
+              <span class="text-neutral-700">{{ quantity }}</span>
               <button
-                class="btn btn-circle btn-sm bg-primary text-white hover:bg-primary/90"
-                @click="increment"
+                class="btn btn-xs btn-circle bg-primary hover:bg-primary/90 text-white border-0"
+                @click="quantity++"
               >
                 +
               </button>
             </div>
-            <div class="flex gap-2">
-              <button class="btn btn-primary text-white hover:bg-primary/90" @click="addToCart">
-                Add to Cart
-              </button>
-              <button class="btn btn-outline btn-primary hover:text-white">Buy Now</button>
+          </div>
+        </div>
+
+        <!-- Price Summary -->
+        <div class="bg-neutral-50 p-4 rounded-lg my-6">
+          <div class="flex justify-between mb-2">
+            <span class="text-neutral-600">Price</span>
+            <span class="text-neutral-800">
+              ₹{{ calculatePriceInRupees(recipe.caloriesPerServing) * quantity }}
+            </span>
+          </div>
+          <div class="flex justify-between mb-2">
+            <span class="text-neutral-600">Delivery</span>
+            <span class="text-neutral-800">₹60</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">GST (18%)</span>
+            <span class="text-neutral-800">
+              ₹{{ Math.round(calculatePriceInRupees(recipe.caloriesPerServing) * quantity * 0.18) }}
+            </span>
+          </div>
+          <div class="border-t border-neutral-200 mt-2 pt-2">
+            <div class="flex justify-between">
+              <span class="font-bold text-neutral-800">Total</span>
+              <span class="font-bold text-primary">
+                ₹{{
+                  calculatePriceInRupees(recipe.caloriesPerServing) * quantity +
+                  60 +
+                  Math.round(calculatePriceInRupees(recipe.caloriesPerServing) * quantity * 0.18)
+                }}
+              </span>
             </div>
           </div>
         </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-action">
+          <button class="btn btn-ghost text-neutral-600 hover:bg-neutral-100" @click="closeModal">
+            Cancel
+          </button>
+          <button
+            class="btn bg-primary hover:bg-primary/90 text-white border-0"
+            @click="confirmPurchase"
+          >
+            Proceed to Cart
+          </button>
+        </div>
       </div>
-    </div>
+      <form method="dialog" class="modal-backdrop">
+        <button @click="closeModal">close</button>
+      </form>
+    </dialog>
   </div>
 
   <div v-else class="text-center py-12">
@@ -209,5 +309,10 @@ onMounted(fetchRecipe)
 
 .btn-primary {
   @apply font-semibold;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
 }
 </style>
