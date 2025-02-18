@@ -1,58 +1,47 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
-import FoodCard from '@/components/FoodCard.vue'
 import { useRecipeStore } from '@/stores/recipeStore'
+import FoodCard from '@/components/FoodCard.vue'
+import FilterMenu from '@/components/FilterMenu.vue'
 
 const store = useRecipeStore()
 
-// Compute AI recommendations (top 4 rated recipes)
-const aiRecommendations = computed(() => {
-  return [...store.recipes].sort((a, b) => b.rating - a.rating).slice(0, 4)
-})
+// Computed properties for filtered recipes
+const filteredRecipes = computed(() => store.filteredRecipes)
+const aiRecommendations = computed(() => store.aiRecommendations)
 
+// Fetch recipes when component mounts
 onMounted(async () => {
   await store.fetchRecipes()
 })
 </script>
 
 <template>
-  <div class="container mx-auto px-4 space-y-8">
+  <main class="min-h-screen bg-neutral-50 pb-8">
+    <FilterMenu />
+
     <!-- AI Recommendations Section -->
-    <section class="mb-12">
-      <h2 class="text-2xl font-bold text-neutral-800 mb-6 flex items-center gap-2">
-        <span class="text-3xl">🤖</span>
-        <span class="bg-primary/10 text-primary px-4 py-2 rounded-lg">
-          AI-Powered Recommendations
-        </span>
-      </h2>
-      <div v-if="store.loading" class="text-center py-8">
-        <span class="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-      <div v-else-if="store.error" class="alert alert-error text-white">
-        {{ store.error }}
-      </div>
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <section v-if="aiRecommendations.length" class="container mx-auto px-4 mt-8">
+      <h2 class="text-2xl font-bold mb-4 text-neutral-800">AI Recommendations</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <FoodCard v-for="recipe in aiRecommendations" :key="recipe.id" :recipe="recipe" />
       </div>
     </section>
 
     <!-- All Recipes Section -->
-    <section>
-      <h2 class="text-2xl font-bold text-neutral-800 mb-6 px-4 py-2 bg-neutral-100 rounded-lg">
-        All Recipes
-      </h2>
-      <div v-if="store.loading" class="flex justify-center items-center py-12">
-        <span class="loading loading-spinner loading-lg text-primary"></span>
-        <span class="ml-4 text-lg text-neutral-600">Searching recipes...</span>
+    <section class="container mx-auto px-4 mt-8">
+      <h2 class="text-2xl font-bold mb-4 text-neutral-800">All Recipes</h2>
+      <div
+        v-if="filteredRecipes.length"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <FoodCard v-for="recipe in filteredRecipes" :key="recipe.id" :recipe="recipe" />
       </div>
-      <div v-else-if="store.error" class="alert alert-error text-white">
-        {{ store.error }}
-      </div>
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        <FoodCard v-for="recipe in store.filteredRecipes" :key="recipe.id" :recipe="recipe" />
+      <div v-else class="text-center py-8">
+        <p class="text-neutral-600">No recipes found matching your criteria.</p>
       </div>
     </section>
-  </div>
+  </main>
 </template>
 
 <style scoped>
