@@ -14,11 +14,16 @@ onMounted(async () => {
   <div class="container mx-auto px-4 space-y-8">
     <!-- AI Recommendations Section -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-primary mb-6">🤖 AI-Powered Recommendations</h2>
+      <h2 class="text-2xl font-bold text-neutral-800 mb-6 flex items-center gap-2">
+        <span class="text-3xl">🤖</span>
+        <span class="bg-primary/10 text-primary px-4 py-2 rounded-lg">
+          AI-Powered Recommendations
+        </span>
+      </h2>
       <div v-if="store.loading" class="text-center py-8">
         <span class="loading loading-spinner loading-lg text-primary"></span>
       </div>
-      <div v-else-if="store.error" class="alert alert-error">
+      <div v-else-if="store.error" class="alert alert-error text-white">
         {{ store.error }}
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -28,11 +33,13 @@ onMounted(async () => {
 
     <!-- All Recipes Section -->
     <section>
-      <h2 class="text-2xl font-bold mb-6">All Recipes</h2>
+      <h2 class="text-2xl font-bold text-neutral-800 mb-6 px-4 py-2 bg-neutral-100 rounded-lg">
+        All Recipes
+      </h2>
       <div v-if="store.loading" class="text-center py-8">
         <span class="loading loading-spinner loading-lg text-primary"></span>
       </div>
-      <div v-else-if="store.error" class="alert alert-error">
+      <div v-else-if="store.error" class="alert alert-error text-white">
         {{ store.error }}
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -45,5 +52,14 @@ onMounted(async () => {
 <style scoped>
 .container {
   max-width: 1440px;
+}
+
+/* Improved text contrast */
+h2 {
+  @apply text-neutral-800 font-bold;
+}
+
+.alert-error {
+  @apply text-white font-medium;
 }
 </style>
